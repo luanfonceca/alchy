@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Enhancement library for SQLAlchemy">
+        <meta name="author" content="Derrick Gilland">
+        
+        <link rel="shortcut icon" href="./img/favicon.ico">
+
+        <title>alchy</title>
+
+        <link href="./css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="./css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link href="./css/prettify-1.0.css" rel="stylesheet">
+        <link href="./css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href=".">alchy</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li class="active">
+                    <a href=".">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="model/">Model</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="events/">Events</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="query/">Query</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="manager/">Manager</a>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                <li class="disabled">
+                    <a rel="next" >
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="model/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://github.com/dgilland/alchy">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#alchy">alchy</a></li>
+        
+            <li><a href="#overview">Overview</a></li>
+        
+            <li><a href="#requirements">Requirements</a></li>
+        
+            <li><a href="#installation">Installation</a></li>
+        
+            <li><a href="#quick-start">Quick Start</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="alchy">alchy</h1>
+<p><a href="https://pypi.python.org/pypi/alchy/"><img alt="Package Version" src="https://pypip.in/v/alchy/badge.png" /></a>
+<a href="https://travis-ci.org/dgilland/alchy"><img alt="Build Status" src="https://travis-ci.org/dgilland/alchy.png?branch=master" /></a>
+<a href="https://coveralls.io/r/dgilland/alchy"><img alt="Coverage Status" src="https://coveralls.io/repos/dgilland/alchy/badge.png?branch=master" /></a>
+<a href="https://pypi.python.org/pypi/alchy/"><img alt="License" src="https://pypip.in/license/alchy/badge.png" /></a></p>
+<p>Enhancement library for SQLAlchemy</p>
+<h2 id="overview">Overview</h2>
+<p><code>alchy</code>'s main components:</p>
+<ul>
+<li><code>Manager</code>: Manager class with access to database session, engine, and declarative model</li>
+<li><code>Query</code>: Enhanced subclass of sqlalchemy's <code>orm.Query</code> and default query class for <code>Manager.session</code></li>
+<li><code>ModelBase</code>: Enhanced base class for models which features a query property</li>
+<li><code>make_declarative_base</code>: Factory function for creating a delcarative base class from <code>ModelBase</code></li>
+<li><code>events</code>: Support for ORM event listeners defined on model classes</li>
+</ul>
+<h2 id="requirements">Requirements</h2>
+<h3 id="compatibility">Compatibility</h3>
+<ul>
+<li>Python 2.6</li>
+<li>Python 2.7</li>
+<li>Python 3.3</li>
+</ul>
+<p>Not tested on any other version but may work nonetheless.</p>
+<h3 id="dependencies">Dependencies</h3>
+<ul>
+<li>SQLAlchemy &gt;= 0.9.0</li>
+<li>six &gt;= 1.5.2</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>Install using pip:</p>
+<pre class="prettyprint well"><code class="bash">pip install alchy
+</code></pre>
+
+<h2 id="quick-start">Quick Start</h2>
+<p>First, create our database manager.</p>
+<pre class="prettyprint well"><code class="python">import alchy
+
+db = alchy.Manager(config={
+    'engine': {'url': 'sqlite://'}
+})
+</code></pre>
+
+<p><strong>NOTE:</strong> <em>A manager instance isn't required to use alchy's other features. It's mostly a database manager which uses components from alchy by default.</em></p>
+<p>Create some declarative model classes.</p>
+<pre class="prettyprint well"><code class="python">from sqlalchemy import orm, Column, types, ForeignKey
+
+class User(db.Model):
+    __tablename__ = 'user'
+
+    _id = Column(types.Integer(), primary_key=True)
+    name = Column(types.String())
+    email = Column(types.String())
+    level = Column(types.Integer())
+
+    items = orm.relationship('UserItem')
+
+class UserItem(db.Model):
+    # when no __tablename__ defined,
+    # one is autogenerated using class name
+    # like this:
+    #__tablename__ = 'user_item'
+
+    _id = Column(types.Integer(), primary_key=True)
+    user_id = Column(types.Integer(), ForeignKey('users._id'))
+    name = Column(types.String())
+
+    user = orm.relationship('User')
+</code></pre>
+
+<p>Use the manager to create all database tables.</p>
+<pre class="prettyprint well"><code class="python">db.create_all()
+</code></pre>
+
+<p>Now, create some records.</p>
+<pre class="prettyprint well"><code class="python"># initialize using keyword args
+user1 = User(name='Fred', email='fred@example.com')
+
+# ...or initialize using a dict
+user2 = User({'name': 'Barney'})
+
+# update using either method as well
+user2.update(email='barney@example.org')
+user2.update({'email': 'barney@example.com'})
+</code></pre>
+
+<p>Add them to the database.</p>
+<pre class="prettyprint well"><code class="python"># there are several options for adding records
+
+# add and commit in one step using positional args
+db.add_commit(user1, user2)
+
+# ...or add/commit using a list
+users = [user1, user2]
+db.add_commit(users)
+
+# ...or separate add and commit calls
+db.add(user1, user2)
+db.commit()
+
+# ...or with a list
+db.add(users)
+db.commit()
+
+# ...or separate adds and commit
+db.add(user1)
+db.add(user2)
+db.commit()
+</code></pre>
+
+<p>Fetch model and operate.</p>
+<pre class="prettyprint well"><code class="python"># create user
+db.add_commit(User(name='Wilma', email='wilma@example.com'))
+
+# fetch from database
+user = User.get(user._id)
+
+# convert to dict
+user_dict = user.to_dict()
+# ...or just pass object directly to dict()
+user_dict = dict(user)
+
+# make some changes
+user.update(level=5)
+
+# and refresh
+user.refresh()
+
+# or flush
+user.flush()
+
+# access the session that loaded the model instance
+user.session == db.object_session(user)
+
+# delete user
+user.delete()
+db.commit()
+
+# ...or via db
+db.delete(user)
+db.commit()
+
+# ...or all-in-one step
+db.delete_commit(user)
+</code></pre>
+
+<p>Query records from the database.</p>
+<pre class="prettyprint well"><code class="python"># add some more users
+db.add_commit(User(), User(), User(), User(), User())
+
+# there are several syntax options for querying records
+
+# using db.session directly
+records = db.session.query(User).all()
+
+# ...or using db directly (i.e. db.session proxy)
+records = db.query(User).all()
+
+# ...or via query property on model class
+records = User.query.all()
+</code></pre>
+
+<p>Use features from the enhanced query class.</p>
+<pre class="prettyprint well"><code class="python">q = User.query.join(UserItem)
+
+# entities
+q.entities == [User]
+q.join_entities == [UserItem]
+q.all_entities == [User, UserItem]
+
+# paging
+q.page(2, per_page=2) == q.limit(2).offset((2-1) * 2)
+
+# pagination
+page2 = q.paginate(2, per_page=2)
+page2.query == q.limit(2).offset((2-1) * 2)
+page2.page == 2
+page2.per_page == 2
+page2.total == User.query.count()
+page2.itmes == q.limit(2).offset((2-1) * 2).all()
+page2.prev_num == 1
+page2.has_prev == True
+page2.next_num == 3
+page2.has_next == True
+page_1 = page2.prev()
+page_3 = page2.next()
+
+# searching
+q.search('example.com', {'user_name': 'fred', 'item_name': 'shoes'}).all()
+
+# entity loading
+User.query.join_eager(UserItem)
+User.query.joinedload(UserItem)
+User.query.lazyload(UserItem)
+User.query.immediateload(UserItem)
+User.query.noload(UserItem)
+User.query.subqueryload(UserItem)
+
+# column loading
+User.query.load_only('_id', 'name')
+User.query.defer('email')
+User.query.undefer('email') # if User.email undeferred in class definition
+User.query.undefer_group('group1', 'group2') # if under groups defined in class
+
+# utilities
+User.query.map(lambda user: user.level)
+User.query.pluck('level')
+User.query.reduce(
+    lambda result, user: result + 1 if user.level &gt; 5 else result,
+    initial=0
+)
+</code></pre>
+
+<p>Utilize ORM events.</p>
+<pre class="prettyprint well"><code class="python">class User(db.Model):
+    __tablename__ = 'user'
+
+    _id = Column(types.Integer(), primary_key=True)
+    name = Column(types.String())
+    email = Column(types.String())
+    level = Column(types.Integer())
+
+    @alchy.events.before_insert_update
+    def validate(self):
+        '''Validate model instance'''
+        # do validation
+</code></pre>
+
+<p>Finally, clean up after ourselves.</p>
+<pre class="prettyprint well"><code class="python">db.drop_all()
+</code></pre>
+
+</div>
+        </div>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="./js/bootstrap-3.0.3.min.js"></script>
+        <script src="./js/prettify-1.0.min.js"></script>
+        <script src="./js/base.js"></script>
+    </body>
+</html>
