@@ -127,30 +127,310 @@
             <div class="col-md-9" role="main">
 
 <h1 id="query">Query</h1>
-<p>TODO</p>
+<p>The default query class used for ORM queries when accessing <code>manager.query</code>, <code>manager.session.query</code>, or <code>SomeModel.query</code>. Can be used in other libraries/implementations when creating a session.</p>
+<pre class="prettyprint well"><code class="python">from sqlalchemy import orm
+
+from alchy import Query
+
+
+session = orm.scoped_session(orm.sessionmaker())
+session.configure(query_cls=Query)
+</code></pre>
+
 <h2 id="methods">Methods</h2>
 <h3 id="map">map()</h3>
+<p>Call <code>map()</code> on query results.</p>
+<pre class="prettyprint well"><code class="python">Query.map(function, *iterable_args)
+
+Model.query.map(lambda model: model.name)
+</code></pre>
+
 <h3 id="reduce">reduce()</h3>
+<p>Call <code>reduce()</code> on query results.</p>
+<pre class="prettyprint well"><code class="python">Query.reduce(function, initial=None)
+
+Model.query.reduce(lambda result, i: result + i.number, 0)
+</code></pre>
+
 <h3 id="reduce_right">reduce_right()</h3>
+<p>Call <code>reduce()</code> on query results in reverse order.</p>
+<pre class="prettyprint well"><code class="python">Query.reduce_right(function, initial=None)
+
+Model.query.reduce_right(lambda result, i: (i.number * result) + 1, 1)
+</code></pre>
+
 <h3 id="pluck">pluck()</h3>
+<p>Pluck field value from each row and return as a list.</p>
+<pre class="prettyprint well"><code class="python">Query.pluck(column)
+
+Model.query.pluck('name')
+</code></pre>
+
 <h3 id="page">page()</h3>
+<p>Return a specific page of query results. Pages are 1-indexed.</p>
+<pre class="prettyprint well"><code class="python">Query.page(page=1, per_page=None)
+
+# if `per_page` is None, then Query.DEFAULT_PER_PAGE is used
+Model.query.page(3) == Model.query.page(3, Query.DEFAULT_PER_PAGE)
+
+Model.query.page(3, 25)
+</code></pre>
+
 <h3 id="paginate">paginate()</h3>
+<p>Return a pagination object from query results (borrowed heavily from <a href="http://pythonhosted.org/Flask-SQLAlchemy/api.html#flask.ext.sqlalchemy.BaseQuery.paginate">Flask-SQLAlchemy</a>).</p>
+<pre class="prettyprint well"><code class="python">Query.paginate(page=1, per_page=None, error_out=True)
+
+page_3 = Model.query.paginate(3, per_page=25)
+
+# assuming there's 100 total records
+page_3.query == Model.query
+page_3.page == 5
+page_3.per_page == 25
+page_3.pages == 4
+page_3.total == 100
+
+page_3.items == Model.query.page(5, 25)
+
+page_3.prev_num == 4
+page_3.next_num == 6
+page_3.has_prev == True
+page_3.has_next == True
+
+page_2 = page_3.prev()
+page_4 = page_3.next()
+page_4.has_next == False
+</code></pre>
+
 <h3 id="advanced_search">advanced_search()</h3>
+<p>Perform an advanced search on all model entities contained in query. The <code>search_dict</code> provided are passed to all models via <a href="../model/#advanced_search">Model.advanced_search()</a>. The resulting filters (from all models) are ANDed together.</p>
+<pre class="prettyprint well"><code class="python">Query.advanced_search(search_dict)
+
+class Model1(Model):
+    name = Column(types.String())
+
+    __advanced_search__ = {
+        'model1_name': lambda value: Model1.name.like('%{0}%'.format(value))
+    }
+
+class Model2(Model):
+    name = Column(types.String())
+
+    __advanced_search__ = {
+        'model2_name': lambda value: Model1.name.like('%{0}%'.format(value))
+    }
+
+Model1.query.join(Model2).advanced_search({
+    'model1_name': 'foo',
+    'model2_name': 'bar'
+})
+
+# this is equivalent to the following query using core sqlalchemy
+Model1.query.join(Model2).filter(
+    and_(
+        Model1.name.like('%{0}%').format('foo'),
+        Model2.name.like('%{0}%').format('bar')
+    )
+)
+</code></pre>
+
+<p>To best support advanced searching when querying multiple models, it is recommended to namespace the <code>__advanced_search__</code> keys uniquely so that models having the same column attribute name can be queried individually.</p>
 <h3 id="simple_search">simple_search()</h3>
+<p>Perform a simple search on all model entities contained in query. The <code>search_string</code> provided are split on <code>space</code>. The resulting search terms are then passed to all models via <a href="../model/#simple_search">Model.simple_search()</a> where each term is ORed together. Finally, the resulting filters (from all models) are ANDed together.</p>
+<pre class="prettyprint well"><code class="python">Query.simple_search(search_string)
+
+class Model1(Model):
+    name = Column(types.String())
+
+    __simple_search__ = {
+        'name': lambda value: Model1.name.like('%{0}%'.format(value))
+    }
+
+class Model2(Model):
+    name = Column(types.String())
+
+    __simple_search__ = {
+        'name': lambda value: Model1.name.like('%{0}%'.format(value))
+    }
+
+Model1.query.join(Model2).simple_search('foo bar')
+
+# this is equivalent to the following query using core sqlalchemy
+Model1.query.join(Model2).filter(
+    and_(
+        or_(
+            Model1.name.like('%{0}%').format('foo'),
+            Model1.name.like('%{0}%').format('bar')
+        ),
+        or_(
+            Model2.name.like('%{0}%').format('foo'),
+            Model2.name.like('%{0}%').format('bar')
+        )
+    )
+)
+</code></pre>
+
 <h3 id="search">search()</h3>
+<p>Combine <a href="#advanced_search">Query.advanced_search()</a> and <a href="#simple_search">Query.simple_search()</a> into a single call. Optionally provide <code>limit</code> and <code>offset</code> parameters.</p>
+<pre class="prettyprint well"><code class="python">Query.search(search_string=None, search_dict=None, limit=None, offset=None)
+
+Model1.query.join(Model2).search('foo bar', {'model1': 'foo', 'model2': 'bar']})
+</code></pre>
+
 <h2 id="entity-load-methods">Entity Load Methods</h2>
+<p>The following methods curry functional loading methods onto the query object to make it easier to apply various join methods with query options.</p>
 <h3 id="join_eager">join_eager()</h3>
+<p>Join models using <code>orm.contains_eager</code> option.</p>
+<pre class="prettyprint well"><code class="python">Query.join_eager(*keys, **contains_eager_options)
+
+Model1.query.join_eager('relation_1_to_2')
+# is equivalent to...
+Model1.query.join('relation_1_to_2').options(
+    orm.contains_eager('relation_1_to_2')
+)
+
+Model1.query.join_eager(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.join(Model1.relation_1_to_2).options(
+    orm.contains_eager(Model1.relation_1_to_2)
+)
+
+Model1.query.join_eager('relation_1_to_2', 'relation_2_to_3')
+# is equivalent to...
+Model1.query.join('relation_1_to_2', 'relation_2_to_3').options(
+    orm.contains_eager('relation_1_to_2').contains_eager('relation_2_to_3')
+)
+
+Model1.query.join_eager('Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.join(Model1.relation_1_to_2, Model2.relation_2_to_3).options(
+    orm.contains_eager(Model1.relation_1_to_2).contains_eager(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h3 id="outerjoin_eager">outerjoin_eager()</h3>
+<p>Similar to <a href="#join_eager">join_eager()</a> but using <code>outerjoin</code> instead of <code>join</code>.</p>
 <h3 id="joinedload">joinedload()</h3>
+<p>Apply <code>query.options(orm.joinedload())</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.joinedload(*keys, **joinedload_options)
+
+Model1.query.joinedload(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.options(
+    orm.joinedload(Model1.relation_1_to_2)
+)
+
+Model1.query.joinedload(Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.options(
+    orm.joinedload(Model1.relation_1_to_2).joinedload(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h3 id="immediateload">immediateload()</h3>
+<p>Apply <code>query.options(orm.immediateload())</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.immediateload(*keys, **immediateload_options)
+
+Model1.query.immediateload(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.options(
+    orm.immediateload(Model1.relation_1_to_2)
+)
+
+Model1.query.immediateload(Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.options(
+    orm.immediateload(Model1.relation_1_to_2).immediateload(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h3 id="lazyload">lazyload()</h3>
+<p>Apply <code>query.options(orm.lazyload())</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.lazyload(*keys, **lazyload_options)
+
+Model1.query.lazyload(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.options(
+    orm.lazyload(Model1.relation_1_to_2)
+)
+
+Model1.query.lazyload(Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.options(
+    orm.lazyload(Model1.relation_1_to_2).lazyload(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h3 id="noload">noload()</h3>
+<p>Apply <code>query.options(orm.noload())</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.noload(*keys, **noload_options)
+
+Model1.query.noload(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.options(
+    orm.noload(Model1.relation_1_to_2)
+)
+
+Model1.query.noload(Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.options(
+    orm.noload(Model1.relation_1_to_2).noload(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h3 id="subqueryload">subqueryload()</h3>
+<p>Apply <code>query.options(orm.subqueryload())</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.subqueryload(*keys, **subqueryload_options)
+
+Model1.query.subqueryload(Model1.relation_1_to_2)
+# is equivalent to...
+Model1.query.options(
+    orm.subqueryload(Model1.relation_1_to_2)
+)
+
+Model1.query.subqueryload(Model1.relation_1_to_2, Model2.relation_2_to_3)
+# is equivalent to...
+Model1.query.options(
+    orm.subqueryload(Model1.relation_1_to_2).subqueryload(Model2.relation_2_to_3)
+)
+</code></pre>
+
 <h2 id="column-load-methods">Column Load Methods</h2>
+<p>The following methods curry functional column loading methods onto the query object to make it easier to apply various column loading methods with query options.</p>
 <h3 id="load_only">load_only()</h3>
+<p>Apply <code>Load.load_only()</code> to query. Arguments to <code>Query.load_only</code> can be either all strings or an object with a <code>Load</code> API followed by strings.</p>
+<pre class="prettyprint well"><code class="python">Query.load_only(*columns)
+
+Model1.query.load_only('_id', 'name')
+Model1.query.join(Model2).load_only(Model1, 'name').load_only(Model2, 'name')
+</code></pre>
+
 <h3 id="defer">defer()</h3>
+<p>Apply <code>Load.defer()</code> to query.</p>
+<pre class="prettyprint well"><code class="python">Query.defer(*columns)
+
+Model1.query.defer('name', 'rank')
+Model1.query.defer(Model1, 'name', 'rank')
+Model1.query.lazyload(Model1.model2).defer(Model1.model2, 'name')
+</code></pre>
+
 <h3 id="undefer">undefer()</h3>
+<p>Apply <code>Load.undefer()</code> to query. Typically only used when a column was created using <code>orm.deferred()</code> as in <code>name = orm.deferred(Column(types.String()))</code></p>
+<pre class="prettyprint well"><code class="python">Query.undefer(*columns)
+
+Model1.query.undefer('name', 'rank')
+Model1.query.undefer(Model1, 'name', 'rank')
+Model1.query.join_eager(Model1.model2).undefer(Model1.model2, 'name')
+</code></pre>
+
 <h3 id="undefer_group">undefer_group()</h3>
+<p>Apply <code>Load.undefer_group()</code> to query. Requires <code>group</code> argument used when calling <code>orm.deferred()</code> as in <code>name = orm.deferred(Column(types.String()), group='deferred')</code></p>
+<pre class="prettyprint well"><code class="python">Query.undefer(*columns)
+
+Model1.query.undefer_group('deferred_model1')
+Model1.query.undefer_group(Model1, 'deferred_model1')
+Model1.query.lazyload(Model1.model2).undefer('deferred_model2')
+</code></pre>
+
 </div>
         </div>
 

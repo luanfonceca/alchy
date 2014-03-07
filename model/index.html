@@ -134,6 +134,23 @@
 
 <h1 id="modelbase">ModelBase</h1>
 <p>The base class used when creating the declarative base.</p>
+<p>Can be used to easily create your own declarative base without having to use a <code>Manager</code> instance:</p>
+<pre class="prettyprint well"><code class="python"># in project/core.py
+from alchy import ModelBase, make_declarative_base
+
+class Base(ModelBase):
+    # augument the ModelBase with super powers
+
+Model = make_declarative_base(Base=Base)
+</code></pre>
+
+<pre class="prettyprint well"><code class="python"># in project/models/user.py
+from project.core import Model
+
+class User(Model):
+    # define declarative User model
+</code></pre>
+
 <h2 id="instance-methods">Instance Methods</h2>
 <h3 id="9595init9595">__init__()</h3>
 <p>Proxy to <a href="#update">ModelBase.update()</a>.</p>
