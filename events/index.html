@@ -79,6 +79,12 @@
                 </li>
             
             
+            
+                <li >
+                    <a href="../examples/">Examples</a>
+                </li>
+            
+            
             </ul>
 
             <!-- Search, Navigation and Repo links -->
@@ -127,32 +133,331 @@
             <div class="col-md-9" role="main">
 
 <h1 id="model-events">Model Events</h1>
-<p>TODO</p>
+<p>SQLAlchemy features an ORM event API but one thing that is lacking is a way to register event handlers in a declarative way inside the Model's class definition. To bridge this gap, <code>alchy.events</code> contains a collection of decorators that enable this kind of functionality.</p>
+<p>Instead of having to write event registration like this:</p>
+<pre class="prettyprint well"><code class="python">from sqlalchemy import event
+
+from project.core import Model
+
+class User(Model):
+    _id = Column(types.Integer(), primary_key=True)
+    email = Column(types.String())
+
+def set_email_listener(target, value, oldvalue, initiator):
+    print 'received &quot;set&quot; event for target: {0}'.format(target)
+    return value
+
+def before_insert_listener(mapper, connection, target):
+    print 'received &quot;before_insert&quot; event for target: {0}'.format(target)
+
+event.listen(User.email, 'set', set_email_listener, retval=True)
+event.listen(User, 'before_insert, before_insert_listener)
+</code></pre>
+
+<p>Model Events allows one to write event registration more succinctly as:</p>
+<pre class="prettyprint well"><code class="python">from alchy import events
+
+from project.core import Model
+
+class User(Model):
+    _id = Column(types.Integer(), primary_key=True)
+    email = Column(types.String())
+
+    @events.on_set('email', retval=True)
+    def on_set_email(target, value, oldvalue, initiator):
+        print 'received set event for target: {0}'.format(target)
+        return value
+
+    @events.before_insert
+    def before_insert(mapper, connection, target):
+        print 'received &quot;before_insert&quot; event for target: {0}'.format(target)
+</code></pre>
+
+<p>Keep in mind that when defining event handlers on a Model class, the function signature should look like a <code>staticmethod</code> function but without the <code>@staticmethod</code> decorator.</p>
+<p>For details on each event type's expected function signature, see SQLAlchemy's <a href="http://docs.sqlalchemy.org/en/latest/orm/events.html">ORM Events</a>.</p>
 <h2 id="attribute-events">Attribute Events</h2>
-<h3 id="set_">@set_</h3>
-<h3 id="append">@append</h3>
-<h3 id="remove">@remove</h3>
+<h3 id="on_set">@on_set</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_set('attribute_name', **event_kargs)
+    def on_set(target, value, oldvalue, initiator):
+        pass
+</code></pre>
+
+<h3 id="on_append">@on_append</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_append('attribute_name', **event_kargs)
+    def on_append(target, value, initiator):
+        pass
+</code></pre>
+
+<h3 id="on_remove">@on_remove</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_remove('attribute_name', **event_kargs)
+    def on_append(target, value, initiator):
+        pass
+</code></pre>
+
 <h2 id="mapper-events">Mapper Events</h2>
 <h3 id="before_delete">@before_delete</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.before_delete
+    def before_delete(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.before_delete(**event_kargs)
+    def before_delete(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="before_insert">@before_insert</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.before_insert
+    def before_insert(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.before_insert(**event_kargs)
+    def before_insert(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="before_update">@before_update</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.before_update
+    def before_update(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.before_update(**event_kargs)
+    def before_update(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="before_insert_update">@before_insert_update</h3>
+<p>This is a composite event which listens for both <code>before_insert</code> and <code>before_update</code> events.</p>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.before_insert_update
+    def before_insert_update(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.before_insert_update(**event_kargs)
+    def before_insert_update(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="after_delete">@after_delete</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.after_delete
+    def after_delete(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.after_delete(**event_kargs)
+    def after_delete(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="after_insert">@after_insert</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.after_insert
+    def after_insert(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.after_insert(**event_kargs)
+    def after_insert(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="after_update">@after_update</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.after_update
+    def after_update(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.after_update(**event_kargs)
+    def after_update(target, value, initiator):
+        pass
+</code></pre>
+
 <h3 id="after_insert_update">@after_insert_update</h3>
-<h3 id="append_result">@append_result</h3>
-<h3 id="create_instance">@create_instance</h3>
-<h3 id="instrument_class">@instrument_class</h3>
+<p>This is a composite event which listens for both <code>after_insert</code> and <code>after_update</code> events.</p>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.after_insert_update
+    def after_insert_update(target, value, initiator):
+        pass
+
+    # or...
+
+    @events.after_insert_update(**event_kargs)
+    def after_insert_update(target, value, initiator):
+        pass
+</code></pre>
+
+<h3 id="on_append_result">@on_append_result</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_append_result
+    def on_append_result(mapper, context, row, target, result, **flags):
+        pass
+
+    # or...
+
+    @events.on_append_result(**event_kargs)
+    def on_append_result(mapper, context, row, target, result, **flags):
+        pass
+</code></pre>
+
+<h3 id="on_create_instance">@on_create_instance</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_create_instance
+    def on_create_instance(mapper, context, row, class_):
+        pass
+
+    # or...
+
+    @events.on_create_instance(**event_kargs)
+    def on_create_instance(mapper, context, row, class_):
+        pass
+</code></pre>
+
+<h3 id="on_instrument_class">@on_instrument_class</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_instrument_class
+    def on_instrument_class(mapper, class_):
+        pass
+
+    # or...
+
+    @events.on_instrument_class(**event_kargs)
+    def on_instrument_class(mapper, class_):
+        pass
+</code></pre>
+
 <h3 id="before_configured">@before_configured</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.before_configured
+    def before_configured():
+        pass
+</code></pre>
+
 <h3 id="after_configured">@after_configured</h3>
-<h3 id="mapper_configured">@mapper_configured</h3>
-<h3 id="populate_instance">@populate_instance</h3>
-<h3 id="translate_row">@translate_row</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.after_configured
+    def after_configured():
+        pass
+</code></pre>
+
+<h3 id="on_mapper_configured">@on_mapper_configured</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_mapper_configured
+    def on_mapper_configured(mapper, class_):
+        pass
+
+    # or...
+
+    @events.on_mapper_configured(**event_kargs)
+    def on_mapper_configured(mapper, class_):
+        pass
+</code></pre>
+
+<h3 id="on_populate_instance">@on_populate_instance</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_populate_instance
+    def on_populate_instance(mapper, context, row, target, **flags):
+        pass
+
+    # or...
+
+    @events.on_populate_instance(**event_kargs)
+    def on_populate_instance(mapper, context, row, target, **flags):
+        pass
+</code></pre>
+
+<h3 id="on_translate_row">@on_translate_row</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_translate_row
+    def on_translate_row(mapper, context, row):
+        pass
+
+    # or...
+
+    @events.on_translate_row(**event_kargs)
+    def on_translate_row(mapper, context, row):
+        pass
+</code></pre>
+
 <h2 id="instance-events">Instance Events</h2>
-<h3 id="expire">@expire</h3>
-<h3 id="load">@load</h3>
-<h3 id="refresh">@refresh</h3>
+<h3 id="on_expire">@on_expire</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_expire
+    def on_expire(target, attrs):
+        pass
+
+    # or...
+
+    @events.on_expire(**event_kargs)
+    def on_expire(target, attrs):
+        pass
+</code></pre>
+
+<h3 id="on_load">@on_load</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_load
+    def on_load(target, context):
+        pass
+
+    # or...
+
+    @events.on_load(**event_kargs)
+    def on_load(target, context):
+        pass
+</code></pre>
+
+<h3 id="on_refresh">@on_refresh</h3>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    ...
+    @events.on_refresh
+    def on_refresh(target, context, attrs):
+        pass
+
+    # or...
+
+    @events.on_refresh(**event_kargs)
+    def on_refresh(target, context, attrs):
+        pass
+</code></pre>
+
 </div>
         </div>
 

@@ -79,6 +79,12 @@
                 </li>
             
             
+            
+                <li >
+                    <a href="../examples/">Examples</a>
+                </li>
+            
+            
             </ul>
 
             <!-- Search, Navigation and Repo links -->
@@ -277,7 +283,7 @@ Model1.query.join(Model2).search('foo bar', {'model1': 'foo', 'model2': 'bar']})
 </code></pre>
 
 <h2 id="entity-load-methods">Entity Load Methods</h2>
-<p>The following methods curry functional loading methods onto the query object to make it easier to apply various join methods with query options.</p>
+<p>The following methods curry functional loading methods onto the query object to make it easier to apply various join methods with query options. For more details on SQLAlchemy's Loader API see <a href="http://docs.sqlalchemy.org/en/latest/orm/loading.html">Relationship Loading Techniques</a>.</p>
 <h3 id="join_eager">join_eager()</h3>
 <p>Join models using <code>orm.contains_eager</code> option.</p>
 <pre class="prettyprint well"><code class="python">Query.join_eager(*keys, **contains_eager_options)

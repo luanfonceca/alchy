@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../img/favicon.ico">
 
-        <title>Manager - alchy</title>
+        <title>Examples - alchy</title>
 
         <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -74,14 +74,14 @@
             
             
             
-                <li class="active">
-                    <a href="./">Manager</a>
+                <li >
+                    <a href="../manager/">Manager</a>
                 </li>
             
             
             
-                <li >
-                    <a href="../examples/">Examples</a>
+                <li class="active">
+                    <a href="./">Examples</a>
                 </li>
             
             
@@ -91,12 +91,12 @@
             <ul class="nav navbar-nav navbar-right">
                 
                 <li >
-                    <a rel="next" href="../query/">
+                    <a rel="next" href="../manager/">
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
-                <li >
-                    <a rel="prev" href="../examples/">
+                <li class="disabled">
+                    <a rel="prev" >
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -119,97 +119,15 @@
             <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#manager">Manager</a></li>
-        
-            <li><a href="#methods">Methods</a></li>
-        
-            <li><a href="#properties">Properties</a></li>
+        <li class="main active"><a href="#examples">Examples</a></li>
         
     
     </ul>
 </div></div>
             <div class="col-md-9" role="main">
 
-<h1 id="manager">Manager</h1>
-<p>The <code>Manager</code> class helps manage a SQLAlchemy database session as well as provide convenience functions for commons operations.</p>
-<h2 id="methods">Methods</h2>
-<h3 id="9595init9595">__init__()</h3>
-<p>Initialization of <code>Manager</code> requires a <code>config</code> dict and an optional declarative base, <code>Model</code>. If <code>Model</code> isn't provided, then a default one is generated using <code>make_declarative_base()</code> and then accessible at <code>manager.Model</code>.</p>
-<pre class="prettyprint well"><code class="python">db = Manager(config, Model=None, engine_config_prefix='')
-
-config = {
-    'engine': {'url': 'sqlite://'},
-    'session': {'autocommit': True}
-}
-
-db = Manager(config=config)
-db.Model
-</code></pre>
-
-<h3 id="create_all">create_all()</h3>
-<p>Call <code>Model.metadata.create_all()</code>.</p>
-<pre class="prettyprint well"><code class="python">db.create_all()
-</code></pre>
-
-<h3 id="drop_all">drop_all()</h3>
-<p>Call <code>Model.metadata.drop_all()</code>.</p>
-<pre class="prettyprint well"><code class="python">db.drop_all()
-</code></pre>
-
-<h3 id="add">add()</h3>
-<p>Call a modified verson of <code>session.add()</code>. Accepts a single object, list of objects, or position arguments of objects to add. Functions similarly to <code>session.add_all()</code> but with a more permissive call signature.</p>
-<pre class="prettyprint well"><code class="python">db.add(*instances)
-
-db.add(user1)
-db.add(user1, user2)
-db.add([user1, user2)
-db.add(user1).add(user2)
-</code></pre>
-
-<h3 id="add_commit">add_commit()</h3>
-<p>Calls <code>add()</code> followed by <code>session.commit()</code>.</p>
-<pre class="prettyprint well"><code class="python">db.add_commit(*instances)
-
-db.add_commit(user1, user2)
-</code></pre>
-
-<h3 id="delete">delete()</h3>
-<p>Call a modified verson of <code>session.delete()</code>. Accepts a single object, list of objects, or position arguments of objects to add. Functions similarly to <code>session.add_all()</code> but with a more permissive call signature.</p>
-<pre class="prettyprint well"><code class="python">db.delete(*instances)
-
-db.delete(user1)
-db.delete(user1, user2)
-db.delete([user1, user2])
-db.delete(user1).delete(user2)
-</code></pre>
-
-<h3 id="delete_commit">delete_commit()</h3>
-<p>Calls <code>delete()</code> followed by <code>session.commit()</code>.</p>
-<pre class="prettyprint well"><code class="python">db.delete_commit(*instances)
-
-db.delete_commit(user1, user2)
-</code></pre>
-
-<h3 id="9595getattr9595">__getattr__</h3>
-<p>Proxy attribute access to <code>session</code> object.</p>
-<pre class="prettyprint well"><code class="python">db.query is db.session.query
-db.commit is db.session.commit
-db.rollback is db.session.rollback
-db.close is db.session.close
-# etc...
-</code></pre>
-
-<h2 id="properties">Properties</h2>
-<h3 id="metadata">metadata</h3>
-<p>Proxy to <code>Model.metadata</code>.</p>
-<pre class="prettyprint well"><code class="python">db.metadata is db.Model.metadata
-</code></pre>
-
-<h3 id="engine">engine</h3>
-<p>Proxy to <code>session.get_bind()</code>.</p>
-<pre class="prettyprint well"><code class="python">db.engine is db.session.get_bind()
-</code></pre>
-
+<h1 id="examples">Examples</h1>
+<p>TODO</p>
 </div>
         </div>
 

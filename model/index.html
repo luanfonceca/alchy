@@ -79,6 +79,12 @@
                 </li>
             
             
+            
+                <li >
+                    <a href="../examples/">Examples</a>
+                </li>
+            
+            
             </ul>
 
             <!-- Search, Navigation and Repo links -->
@@ -245,14 +251,14 @@ model.to_dict()
 </code></pre>
 
 <h3 id="advanced_search">advanced_search()</h3>
-<p>Map the given search dict to the field/functions defined in <a href="#9595advanced_search9595">Model.<strong>advanced_search</strong></a> and AND together returning a query filter.</p>
+<p>Map the given search dict to the field/functions defined in <a href="#9595advanced_search9595">Model.__advanced_search__</a> and AND together returning a query filter.</p>
 <pre class="prettyprint well"><code class="python">Model.advanced_search(search_dict)
 
 model.advanced_search({'field1': 'search1', 'field2': 'search2'})
 </code></pre>
 
 <h3 id="simple_search">simple_search()</h3>
-<p>Pass the given search string to each function in <a href="#9595simple_search9595">Model.<strong>simple_search</strong></a> and AND together returning a query filter.</p>
+<p>Pass the given search string to each function in <a href="#9595simple_search9595">Model.__simple_search__</a> and AND together returning a query filter.</p>
 <pre class="prettyprint well"><code class="python">Model.simple_search(search_string)
 
 model.simple_search('search')
