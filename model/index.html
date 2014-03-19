@@ -177,13 +177,13 @@ model.udpate(data_dict, strict=True)
 </code></pre>
 
 <h3 id="to_dict">to_dict()</h3>
-<p>Convert model instance to raw <code>dict</code>. Optionally, refresh instance if <code>dict</code> is empty using <code>refresh_on_empty=True</code>.</p>
-<pre class="prettyprint well"><code class="python">ModelBase.to_dict(refresh_on_empty=True)
+<p>Convert model instance to raw <code>dict</code>. The return from <a href="#9595to_dict9595">Model.__to_dict__</a> is used for the <code>dict</code> keys.</p>
+<pre class="prettyprint well"><code class="python">ModelBase.to_dict()
 
 model.to_dict()
 </code></pre>
 
-<p>This method fetches state from <code>model.__dict__</code> while filtering keys on valid model descriptors (i.e. internal state values such as <code>_sa*</code> are ignored). It is assumed that <code>__dict__</code> will contain all database values that should be serialize. Thus, any relationships that need to be serialize but are lazy loaded by default will need to be pre-loaded before calling <code>to_dict()</code>. The <a href="../query/">Query</a> class provides first-class access to SQLAlchemy's Load API which can be useful in these situations.</p>
+<p>This method fetches state from <code>model.__dict__</code> while filtering keys on valid model descriptors (i.e. internal state keys such as <code>_sa*</code> are ignored). It is assumed that <code>__dict__</code> will contain all database values that should be serialize. Thus, any relationships that need to be serialize but are lazy loaded by default will need to be pre-loaded before calling <code>to_dict()</code>. The <a href="../query/">Query</a> class provides first-class access to SQLAlchemy's Load API which can be useful in these situations.</p>
 <h3 id="flush">flush()</h3>
 <p>Equivalent to <code>db.session.flush(model)</code>.</p>
 <p>Requires that model was previously added/loaded by session.</p>
@@ -289,9 +289,39 @@ filtered = Model.query.join(Related).filter(Model.field1==value1, Related.field2
 <h2 id="class-configuration">Class Configuration</h2>
 <h3 id="query_class">query_class</h3>
 <p>The query class to use when <code>Model.query</code> is accessed.</p>
+<h3 id="9595to_dict9595">__to_dict__</h3>
+<p>Configuration for <code>to_dict()</code>. Does any necessary preprocessing and returns a set of string attributes which represent the fields which should be returned when calling <code>to_dict()</code>.</p>
+<p>By default the model is refreshed if it's <code>__dict__</code> state is empty and only the ORM descriptor fields are returned.</p>
+<p>This is the property to override if you want to return more/less than the default ORM descriptor fields when calling <code>to_dict()</code>.</p>
+<p>Generally, we can usually rely on <code>self.__dict__</code> (minus any <code>_sa*</code> keys) as a representation of model when it's just been loaded from the database. When this is the case, whatever values are present in <code>__dict__</code> are the loaded values from the database which include/exclude lazy attributes (columns and relationships).</p>
+<p>However, this method falls short after a model has been committed to the databasee (or expired) in which case, <code>__dict__</code> will be empty. This can be worked around by calling <code>self.refresh()</code> which will reload the data from the database using the default loader strategies.</p>
+<p>These are the two main cases this default implementation will try to cover. For anything more complex it would be best to override this property or the <code>to_dict()</code> method itself.</p>
 <h3 id="9595events9595">__events__</h3>
 <p>Define event listeners on Model without using event decorators. For more details, see <a href="../events/">Events</a> section.</p>
 <p><strong>NOTE:</strong> The final value of <code>Model.__events__</code> will contain an aggregate of the events defined directly on <code>__events__</code> and the events defined via event decorators.</p>
+<pre class="prettyprint well"><code class="python">class MyModel(Model):
+    __events__ = {
+        'before_insert': 'on_before_insert',
+        'before_update': 'on_before_update',
+        'on_set': [
+            ('on_set_name', {'attribute': 'name', 'retval': True}),
+            ('on_set_phone', {'attribute': 'phone'})
+        ]
+    }
+
+    def on_before_insert(mapper, connection, target):
+        pass
+
+    def on_before_update(mapper, connection, target):
+        pass
+
+    def on_set_name(target, value, oldvalue, iniator):
+        return value
+
+    def on_set_phone(target, value, oldvalue, iniator):
+        target.phone = oldvalue
+</code></pre>
+
 <h3 id="9595advanced_search9595">__advanced_search__</h3>
 <p>Enable <a href="#advanced_search">Model.advanced_search()</a> by assigning a dict of functions that accept a value and return a query filter. The keys of the dict map the input keys of the search dict used in <a href="#advanced_search">Model.advanced_search()</a>.</p>
 <pre class="prettyprint well"><code class="python">class MyModel(Model):
